@@ -53,10 +53,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           title="Expand sidebar"
         >
           <Image
-            src="/logo-icon.png"
+            src="/logo.png"
             alt="Marketing Strategy"
-            width={28}
-            height={23}
+            width={36}
+            height={10}
             className="object-contain"
           />
         </button>

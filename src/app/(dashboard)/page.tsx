@@ -34,12 +34,12 @@ export default async function DashboardPage() {
       <div className="flex-1 overflow-y-auto px-8 pb-8">
         {projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mb-5">
+            <div className="rounded-2xl bg-accent/10 flex items-center justify-center mb-5 px-5 py-4">
               <Image
-                src="/logo-icon.png"
+                src="/logo.png"
                 alt="Marketing Strategy"
-                width={48}
-                height={42}
+                width={140}
+                height={40}
                 className="object-contain"
               />
             </div>
