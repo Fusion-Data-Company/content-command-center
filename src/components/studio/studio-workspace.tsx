@@ -62,6 +62,7 @@ export function StudioWorkspace({
       aspectRatio: string;
       resolution: string;
       contextText: string;
+      model?: string;
     }) => {
       setIsGenerating(true);
       setCurrentImages([]);
@@ -77,6 +78,7 @@ export function StudioWorkspace({
             stylePreset: params.stylePreset,
             aspectRatio: params.aspectRatio,
             resolution: params.resolution,
+            model: params.model || undefined,
           }),
         });
 
@@ -116,7 +118,7 @@ export function StudioWorkspace({
               Image Studio
             </h1>
             <p className="text-[10px] text-text-muted">
-              Powered by Nano Banana Pro
+              AI Image Studio
             </p>
           </div>
         </div>

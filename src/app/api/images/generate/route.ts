@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateImage } from "@/lib/images/fal-client";
+import { getSettings } from "@/lib/db/queries/settings";
 import type { ImageModel, AspectRatio, Resolution } from "@/lib/images/fal-client";
 
 export async function POST(req: Request) {
@@ -11,9 +12,16 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Use explicit model or fall back to user's default image model setting
+    let effectiveModel = model as ImageModel | undefined;
+    if (!effectiveModel) {
+      const settings = await getSettings();
+      effectiveModel = settings.defaultImageModel as ImageModel;
+    }
+
     const images = await generateImage({
       prompt,
-      model: (model as ImageModel) || "fal-ai/nano-banana-pro",
+      model: effectiveModel || "fal-ai/nano-banana-pro",
       aspectRatio: (aspectRatio as AspectRatio) || "16:9",
       resolution: (resolution as Resolution) || "1K",
       numImages: numImages || 1,

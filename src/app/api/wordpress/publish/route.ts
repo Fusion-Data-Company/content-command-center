@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getSiteById, getGeneratedContentById, getExternalContentById, createJob, updateJob } from "@/lib/db/queries/wordpress";
+import { getSettings } from "@/lib/db/queries/settings";
 import { decryptPassword } from "@/lib/wordpress/crypto";
 import {
   publishPost,
@@ -159,6 +160,7 @@ export async function POST(req: NextRequest) {
           const apiKey = process.env.OPENROUTER_API_KEY;
           if (apiKey && categories.length > 0) {
             try {
+              const settings = await getSettings();
               const analysisRes = await fetch(
                 "https://openrouter.ai/api/v1/chat/completions",
                 {
@@ -170,7 +172,7 @@ export async function POST(req: NextRequest) {
                     "X-Title": "Content Command Center",
                   },
                   body: JSON.stringify({
-                    model: "anthropic/claude-sonnet-4",
+                    model: settings.chatModel,
                     messages: [
                       {
                         role: "user",

@@ -105,6 +105,7 @@ export function ChatContainer({
   const [autoGenerateImages, setAutoGenerateImages] = useState(true);
   const [autoGenerateInfographic, setAutoGenerateInfographic] = useState(true);
   const [isGeneratingInfographic, setIsGeneratingInfographic] = useState(false);
+  const [isHumanizing, setIsHumanizing] = useState(false);
   const lastContentRef = useRef(
     initialMessages.filter((m) => m.role === "assistant").pop()?.content || ""
   );
@@ -115,6 +116,21 @@ export function ChatContainer({
     (() => {
       const set = new Set<string>();
       if (initialImages?.some((img) => img.imageType === "infographic")) {
+        const lastAssistant = initialMessages
+          .filter((m) => m.role === "assistant")
+          .pop();
+        if (lastAssistant) {
+          const blogContent = extractSection(lastAssistant.content, "blog");
+          if (blogContent) set.add(blogContent.slice(0, 100));
+        }
+      }
+      return set;
+    })()
+  );
+  const humanizeProcessedRef = useRef<Set<string>>(
+    (() => {
+      const set = new Set<string>();
+      if (initialContent?.isNaturalized) {
         const lastAssistant = initialMessages
           .filter((m) => m.role === "assistant")
           .pop();
@@ -353,6 +369,78 @@ export function ChatContainer({
     generateInfographic();
   }, [chat.isStreaming, chat.messages, saveImagesToDB, autoGenerateInfographic]);
 
+  // Phase 3: Auto-humanize content after blog is generated
+  useEffect(() => {
+    if (chat.isStreaming) return;
+    if (isGeneratingImages || isGeneratingInfographic) return;
+
+    const lastAssistant = chat.messages
+      .filter((m) => m.role === "assistant")
+      .pop();
+    if (!lastAssistant) return;
+
+    const blogContent = extractSection(lastAssistant.content, "blog");
+    if (!blogContent || blogContent.length < 200) return;
+
+    const contentKey = blogContent.slice(0, 100);
+    if (humanizeProcessedRef.current.has(contentKey)) return;
+    humanizeProcessedRef.current.add(contentKey);
+
+    const humanize = async () => {
+      setIsHumanizing(true);
+
+      try {
+        const res = await fetch("/api/humanize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId, blogContent }),
+        });
+
+        if (!res.ok) throw new Error("Humanization request failed");
+
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let accumulated = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                accumulated += parsed.content;
+              }
+            } catch {
+              /* skip */
+            }
+          }
+        }
+
+        // Replace blog section with humanized content
+        if (accumulated && accumulated.length > 50) {
+          setParsedSections((prev) => ({ ...prev, blog: accumulated }));
+        }
+      } catch (err) {
+        console.error("Humanization failed:", err);
+      } finally {
+        setIsHumanizing(false);
+      }
+    };
+
+    humanize();
+  }, [chat.isStreaming, chat.messages, isGeneratingImages, isGeneratingInfographic, projectId]);
+
   // Manual image generation trigger
   const handleGenerateImage = useCallback(async (prompt: string) => {
     setIsGeneratingImages(true);
@@ -449,7 +537,7 @@ export function ChatContainer({
             <h1 className="font-heading text-base font-semibold text-text-primary">
               {projectTitle}
             </h1>
-            {(chat.isStreaming || isGeneratingImages || isGeneratingInfographic) && (
+            {(chat.isStreaming || isGeneratingImages || isGeneratingInfographic || isHumanizing) && (
               <div className="flex items-center gap-1.5 mt-0.5">
                 <div className="flex gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce [animation-delay:0ms]" />
@@ -457,11 +545,13 @@ export function ChatContainer({
                   <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce [animation-delay:300ms]" />
                 </div>
                 <span className="text-xs text-accent">
-                  {isGeneratingInfographic
-                    ? "Analyzing content & generating infographic..."
-                    : isGeneratingImages
-                      ? "Generating images..."
-                      : "Generating..."}
+                  {isHumanizing
+                    ? "Humanizing content..."
+                    : isGeneratingInfographic
+                      ? "Analyzing content & generating infographic..."
+                      : isGeneratingImages
+                        ? "Generating images..."
+                        : "Generating..."}
                 </span>
               </div>
             )}
@@ -545,6 +635,7 @@ export function ChatContainer({
             <OutputPanel
               sections={parsedSections}
               isStreaming={chat.isStreaming}
+              isHumanizing={isHumanizing}
               images={generatedImages}
               isGeneratingImages={isGeneratingImages}
               onGenerateImage={handleGenerateImage}

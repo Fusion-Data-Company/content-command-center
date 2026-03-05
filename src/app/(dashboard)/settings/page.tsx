@@ -37,17 +37,22 @@ interface ApiStatus {
 }
 
 const AI_MODELS = [
-  { value: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4", provider: "Anthropic" },
-  { value: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet", provider: "Anthropic" },
-  { value: "google/gemini-2.5-pro-preview", label: "Gemini 2.5 Pro", provider: "Google" },
-  { value: "openai/gpt-4o", label: "GPT-4o", provider: "OpenAI" },
+  { value: "perplexity/sonar", label: "Perplexity Sonar", provider: "Perplexity", tier: "mid" },
+  { value: "perplexity/sonar-pro", label: "Perplexity Sonar Pro", provider: "Perplexity", tier: "premium" },
+  { value: "anthropic/claude-3.5-haiku", label: "Claude 3.5 Haiku", provider: "Anthropic", tier: "budget" },
+  { value: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4", provider: "Anthropic", tier: "premium" },
+  { value: "openai/gpt-4.1-mini", label: "GPT-4.1 Mini", provider: "OpenAI", tier: "budget" },
+  { value: "openai/gpt-4.1", label: "GPT-4.1", provider: "OpenAI", tier: "premium" },
+  { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash", provider: "Google", tier: "budget" },
+  { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", provider: "Google", tier: "premium" },
+  { value: "meta-llama/llama-4-maverick", label: "Llama 4 Maverick", provider: "Meta", tier: "budget" },
+  { value: "deepseek/deepseek-chat", label: "DeepSeek V3", provider: "DeepSeek", tier: "budget" },
 ];
 
 const IMAGE_MODELS = [
-  { value: "fal-ai/nano-banana-pro", label: "Nano Banana Pro", note: "Gemini 3 Pro Image" },
-  { value: "fal-ai/flux-2-pro", label: "FLUX.2 Pro", note: "High quality" },
-  { value: "fal-ai/flux-2", label: "FLUX.2", note: "Balanced" },
-  { value: "fal-ai/flux/schnell", label: "FLUX Schnell", note: "Fast" },
+  { value: "fal-ai/nano-banana-pro", label: "Nano Banana Pro", note: "Google Imagen" },
+  { value: "fal-ai/flux/schnell", label: "FLUX Schnell", note: "Fast generation" },
+  { value: "fal-ai/flux-2-pro", label: "FLUX.2 Pro", note: "Premium quality" },
 ];
 
 const ASPECT_RATIOS = [
@@ -271,7 +276,7 @@ export default function SettingsPage() {
               >
                 {AI_MODELS.map((m) => (
                   <option key={m.value} value={m.value}>
-                    {m.label} ({m.provider})
+                    {m.label} ({m.provider}){m.tier === "premium" ? " \u2605" : ""}
                   </option>
                 ))}
               </select>

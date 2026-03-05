@@ -107,7 +107,7 @@ export async function POST(req: Request) {
 
     const images = await generateImage({
       prompt: fullPrompt,
-      model: "fal-ai/nano-banana-pro",
+      model: (settings.defaultImageModel as import("@/lib/images/fal-client").ImageModel) || "fal-ai/nano-banana-pro",
       aspectRatio: analysis.aspectRatio || "3:4",
       resolution: "1K",
       numImages: 1,

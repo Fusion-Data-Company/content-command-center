@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateImage } from "@/lib/images/fal-client";
 import { getBrandProfileById } from "@/lib/db/queries/brand-profiles";
+import { getSettings } from "@/lib/db/queries/settings";
 import { createStudioGeneration } from "@/lib/db/queries/studio-generations";
 import type { ImageModel, AspectRatio, Resolution } from "@/lib/images/fal-client";
 
@@ -48,9 +49,16 @@ export async function POST(req: Request) {
       enhancedPrompt += ` Context: ${contextText.slice(0, 500)}`;
     }
 
+    // Use explicit model or fall back to user's default image model setting
+    let effectiveModel = model as ImageModel | undefined;
+    if (!effectiveModel) {
+      const settings = await getSettings();
+      effectiveModel = settings.defaultImageModel as ImageModel;
+    }
+
     const images = await generateImage({
       prompt: enhancedPrompt,
-      model: (model as ImageModel) || "fal-ai/nano-banana-pro",
+      model: effectiveModel || "fal-ai/nano-banana-pro",
       aspectRatio: (aspectRatio as AspectRatio) || "16:9",
       resolution: (resolution as Resolution) || "1K",
       numImages: numImages || 1,
@@ -61,7 +69,7 @@ export async function POST(req: Request) {
       brandProfileId: brandProfileId || undefined,
       prompt,
       contextText,
-      model: model || "fal-ai/nano-banana-pro",
+      model: effectiveModel || "fal-ai/nano-banana-pro",
       aspectRatio: aspectRatio || "16:9",
       resolution: resolution || "1K",
       stylePreset,

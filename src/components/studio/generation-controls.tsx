@@ -24,6 +24,13 @@ type AspectRatio =
   | "21:9";
 type Resolution = "1K" | "2K" | "4K";
 
+const IMAGE_MODELS = [
+  { value: "", label: "Default (from Settings)", note: "" },
+  { value: "fal-ai/nano-banana-pro", label: "Nano Banana Pro", note: "Google Imagen" },
+  { value: "fal-ai/flux/schnell", label: "FLUX Schnell", note: "Fast" },
+  { value: "fal-ai/flux-2-pro", label: "FLUX.2 Pro", note: "Premium" },
+];
+
 interface GenerationControlsProps {
   activeProfile: BrandProfile | null;
   onGenerate: (params: {
@@ -32,6 +39,7 @@ interface GenerationControlsProps {
     aspectRatio: AspectRatio;
     resolution: Resolution;
     contextText: string;
+    model?: string;
   }) => void;
   isGenerating: boolean;
 }
@@ -87,6 +95,7 @@ export function GenerationControls({
   const [stylePreset, setStylePreset] = useState<StylePreset>("infographic");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
   const [resolution, setResolution] = useState<Resolution>("1K");
+  const [imageModel, setImageModel] = useState("");
   const [contextText, setContextText] = useState("");
   const [contextExpanded, setContextExpanded] = useState(false);
 
@@ -98,6 +107,7 @@ export function GenerationControls({
       aspectRatio,
       resolution,
       contextText: contextText.trim(),
+      model: imageModel || undefined,
     });
   };
 
@@ -233,6 +243,24 @@ export function GenerationControls({
           </div>
         </div>
 
+        {/* Image Model */}
+        <div>
+          <label className="text-[11px] font-medium uppercase tracking-wider text-text-muted mb-2 block">
+            Image Model
+          </label>
+          <select
+            value={imageModel}
+            onChange={(e) => setImageModel(e.target.value)}
+            className="w-full bg-bg border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-accent/50"
+          >
+            {IMAGE_MODELS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}{m.note ? ` — ${m.note}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Context injection */}
         <div>
           <button
@@ -278,7 +306,7 @@ export function GenerationControls({
           )}
         </button>
         <p className="text-[10px] text-text-muted text-center mt-2">
-          Powered by Nano Banana Pro (Gemini 3 Pro Image)
+          {imageModel ? IMAGE_MODELS.find((m) => m.value === imageModel)?.label : "Using default model from Settings"}
         </p>
       </div>
     </div>

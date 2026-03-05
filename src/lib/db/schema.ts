@@ -247,7 +247,7 @@ export const appSettings = pgTable("app_settings", {
   userId: text("user_id").notNull().default("default").unique(),
 
   // AI Configuration
-  chatModel: text("chat_model").notNull().default("anthropic/claude-sonnet-4"),
+  chatModel: text("chat_model").notNull().default("perplexity/sonar"),
   chatTemperature: real("chat_temperature").notNull().default(0.7),
   chatMaxTokens: integer("chat_max_tokens").notNull().default(16000),
 

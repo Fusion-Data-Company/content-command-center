@@ -13,6 +13,7 @@ import type { GeneratedImage } from "@/components/chat/chat-container";
 interface OutputPanelProps {
   sections: Record<string, string>;
   isStreaming: boolean;
+  isHumanizing?: boolean;
   images: GeneratedImage[];
   isGeneratingImages: boolean;
   onGenerateImage: (prompt: string) => void;
@@ -28,6 +29,7 @@ type BlogView = "preview" | "markdown";
 export function OutputPanel({
   sections,
   isStreaming,
+  isHumanizing,
   images,
   isGeneratingImages,
   onGenerateImage,
@@ -129,6 +131,12 @@ export function OutputPanel({
                   <span>{reading} min read</span>
                   {isStreaming && (
                     <span className="text-accent">Streaming...</span>
+                  )}
+                  {isHumanizing && (
+                    <span className="text-purple-400 flex items-center gap-1">
+                      <Loader2 size={10} className="animate-spin" />
+                      Humanizing...
+                    </span>
                   )}
                 </div>
                 <div className="flex gap-1">

@@ -22,7 +22,6 @@ export type Resolution = "1K" | "2K" | "4K";
 export type ImageModel =
   | "fal-ai/nano-banana-pro"
   | "fal-ai/flux-2-pro"
-  | "fal-ai/flux-2"
   | "fal-ai/flux/schnell";
 
 export interface GenerateImageParams {
@@ -74,15 +73,41 @@ export async function generateImage(
     }));
   }
 
-  // FLUX models fallback
   const sizeMap: Record<string, string> = {
     "16:9": "landscape_16_9",
     "4:3": "landscape_4_3",
     "1:1": "square_hd",
     "3:4": "portrait_4_3",
     "9:16": "portrait_16_9",
+    "3:2": "landscape_16_9",
+    "21:9": "landscape_16_9",
   };
 
+  // FLUX.2 Pro — does NOT support num_images, always generates 1
+  if (model === "fal-ai/flux-2-pro") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (fal as any).subscribe(model, {
+      input: {
+        prompt: params.prompt,
+        image_size: sizeMap[params.aspectRatio || "16:9"] || "landscape_16_9",
+        enable_safety_checker: true,
+        output_format: "png",
+      },
+    });
+
+    const data = result.data as {
+      images: { url: string; width: number; height: number }[];
+    };
+
+    return data.images.map((img) => ({
+      url: img.url,
+      width: img.width,
+      height: img.height,
+      contentType: "image/png",
+    }));
+  }
+
+  // FLUX Schnell — supports num_images
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result = await (fal as any).subscribe(model, {
     input: {

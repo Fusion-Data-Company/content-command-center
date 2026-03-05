@@ -30,6 +30,8 @@ export async function createContent(data: {
   metaDescription?: string;
   urlSlug?: string;
   version?: number;
+  isNaturalized?: boolean;
+  naturalizeStrength?: string;
 }) {
   const [content] = await db
     .insert(generatedContent)
@@ -41,6 +43,8 @@ export async function createContent(data: {
       metaDescription: data.metaDescription,
       urlSlug: data.urlSlug,
       version: data.version || 1,
+      isNaturalized: data.isNaturalized || false,
+      naturalizeStrength: data.naturalizeStrength,
     })
     .returning();
   return content;
