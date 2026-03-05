@@ -583,11 +583,11 @@ export function ChatContainer({
             <div className="text-center max-w-lg">
               <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-5">
                 <Image
-                  src="/logo.png"
+                  src="/logo-icon.png"
                   alt="Marketing Strategy"
                   width={40}
-                  height={40}
-                  className="rounded-lg"
+                  height={35}
+                  className="object-contain"
                 />
               </div>
               <h2 className="font-heading text-2xl font-bold text-text-primary mb-2">

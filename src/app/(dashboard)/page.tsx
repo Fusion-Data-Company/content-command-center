@@ -15,18 +15,18 @@ export default async function DashboardPage() {
           <Image
             src="/logo.png"
             alt="Marketing Strategy"
-            width={48}
-            height={48}
-            className="rounded-lg"
+            width={180}
+            height={52}
+            className="object-contain"
           />
-          <div>
-            <h1 className="font-heading text-2xl font-bold text-text-primary">
-              Content Command Center
-            </h1>
-            <p className="text-text-dim text-sm mt-0.5">
-              AI-powered content generation and multi-platform publishing
-            </p>
-          </div>
+        </div>
+        <div className="mt-2">
+          <h1 className="font-heading text-2xl font-bold text-text-primary">
+            Content Command Center
+          </h1>
+          <p className="text-text-dim text-sm mt-0.5">
+            AI-powered content generation and multi-platform publishing
+          </p>
         </div>
       </div>
 
@@ -36,11 +36,11 @@ export default async function DashboardPage() {
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mb-5">
               <Image
-                src="/logo.png"
+                src="/logo-icon.png"
                 alt="Marketing Strategy"
                 width={48}
-                height={48}
-                className="rounded-lg"
+                height={42}
+                className="object-contain"
               />
             </div>
             <h2 className="font-heading text-xl font-semibold text-text-primary mb-2">

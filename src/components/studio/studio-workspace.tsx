@@ -125,9 +125,9 @@ export function StudioWorkspace({
         <Image
           src="/logo.png"
           alt="Marketing Strategy"
-          width={28}
-          height={28}
-          className="rounded opacity-60"
+          width={120}
+          height={34}
+          className="object-contain opacity-60"
         />
       </div>
 

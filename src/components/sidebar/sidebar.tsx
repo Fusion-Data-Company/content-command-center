@@ -53,11 +53,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           title="Expand sidebar"
         >
           <Image
-            src="/logo.png"
+            src="/logo-icon.png"
             alt="Marketing Strategy"
             width={28}
-            height={28}
-            className="rounded"
+            height={23}
+            className="object-contain"
           />
         </button>
         <div className="flex flex-col items-center gap-2">
@@ -133,22 +133,14 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     <div className="h-full flex flex-col bg-surface border-r border-border">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <Image
             src="/logo.png"
             alt="Marketing Strategy"
-            width={32}
-            height={32}
-            className="rounded"
+            width={140}
+            height={40}
+            className="object-contain"
           />
-          <div className="leading-tight">
-            <span className="font-heading font-semibold text-xs text-text-primary block">
-              Marketing Strategy
-            </span>
-            <span className="text-[10px] text-text-muted">
-              Content Studio
-            </span>
-          </div>
         </div>
         <button
           onClick={onToggleCollapse}
