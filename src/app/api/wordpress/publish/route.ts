@@ -179,8 +179,8 @@ export async function POST(req: NextRequest) {
                         content: buildAnalysisPrompt(html, categories, site.siteName),
                       },
                     ],
-                    max_tokens: 1000,
-                    temperature: 0.3,
+                    max_tokens: settings.chatMaxTokens,
+                    temperature: settings.chatTemperature,
                   }),
                 }
               );

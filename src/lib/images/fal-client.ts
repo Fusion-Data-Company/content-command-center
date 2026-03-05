@@ -43,6 +43,10 @@ export interface GeneratedImageResult {
 export async function generateImage(
   params: GenerateImageParams
 ): Promise<GeneratedImageResult[]> {
+  if (!process.env.FAL_KEY) {
+    throw new Error("FAL_KEY environment variable is not configured");
+  }
+
   const model = params.model || "fal-ai/nano-banana-pro";
 
   if (model === "fal-ai/nano-banana-pro") {

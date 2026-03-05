@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { X, Image as ImageIcon, Upload, Loader2, Check, FileText, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 interface ImageItem {
   id: string;
@@ -43,8 +44,8 @@ export function ContentPreviewPanel({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const blogHtml = content?.markdown
-    ? (marked.parse(content.markdown, { async: false }) as string)
-    : content?.html || "";
+    ? DOMPurify.sanitize(marked.parse(content.markdown, { async: false }) as string)
+    : DOMPurify.sanitize(content?.html || "");
 
   const handleUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {

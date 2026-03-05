@@ -1,3 +1,22 @@
+export const INFOGRAPHIC_GLOBAL_STYLE = `Aesthetic Direction: Cinematic, business-ultra elite, sharp-focus, photorealistic 3D render, high-contrast red/green duality, professional infographic style.
+
+Color Palette:
+- Red/Orange: #FF4136 (Risk, chaos, vulnerability)
+- Green: #2ECC40 (Security, order, reliability)
+- Blue: #0074D9 (Technology, MCP, architecture)
+- Black: #111111 (Professional backgrounds, text)
+
+Typography: Roboto, Open Sans, Montserrat (professional, clean, readable)
+
+Visual Requirements:
+- Photorealistic 3D rendering
+- Glass and metal textures with volumetric lighting
+- Sharp focus, 8K resolution where applicable
+- High contrast between left/right or before/after panels
+- NO cartoon character people or childish elements
+- Professional iconography only
+- Cinematic lighting with strategic shadows`;
+
 export function buildInfographicAnalysisPrompt(params: {
   blogContent: string;
   brandColors?: string[];
@@ -22,10 +41,15 @@ TASK:
 STYLE CONSTRAINTS:
 - ${colorNote}
 - ${industryNote}
-- Style: Bold, modern, clean infographic with strong visual hierarchy.
+
+GLOBAL AESTHETIC (apply to ALL designs):
+${INFOGRAPHIC_GLOBAL_STYLE}
+
+ADDITIONAL REQUIREMENTS:
 - The design should look like it belongs on a premium business blog — not clip art.
 - Include specific text elements to render (title, key stats, labels).
 - Describe icon suggestions, section dividers, and flow indicators.
+- Your prompt output MUST incorporate the aesthetic direction, color palette, typography, and visual requirements above.
 
 RESPOND WITH EXACTLY THIS JSON FORMAT (no markdown, no code fences, just raw JSON):
 {

@@ -30,9 +30,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   useEffect(() => {
     fetch("/api/projects")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load projects");
+        return r.json();
+      })
       .then((data) => setProjects(data))
-      .catch(() => {});
+      .catch((err) => console.error("Sidebar: failed to load projects:", err));
   }, [pathname]);
 
   const handleProjectCreated = (project: ContentProject) => {

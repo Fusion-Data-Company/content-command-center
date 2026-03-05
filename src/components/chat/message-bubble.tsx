@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check, Brain } from "lucide-react";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import type { ChatMessage } from "@/lib/db/schema";
 import { formatDate } from "@/lib/utils";
 
@@ -27,7 +28,7 @@ export function MessageBubble({
   };
 
   const renderedHtml = !isUser
-    ? marked.parse(message.content, { async: false }) as string
+    ? DOMPurify.sanitize(marked.parse(message.content, { async: false }) as string)
     : "";
 
   return (

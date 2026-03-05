@@ -38,8 +38,8 @@ export function StudioWorkspace({
         const data = await res.json();
         setProfiles(data);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("Studio: failed to refresh profiles:", err);
     }
   }, []);
 
@@ -50,8 +50,8 @@ export function StudioWorkspace({
         const data = await res.json();
         setHistory(data);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("Studio: failed to refresh history:", err);
     }
   }, []);
 

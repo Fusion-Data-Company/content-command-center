@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, FileText, Share2, Eye, Code, Image, Loader2, Download } from "lucide-react";
+import { X, FileText, Share2, Eye, Code, Image, Loader2, Download, Check } from "lucide-react";
 import { BlogPreview } from "./blog-preview";
 import { SocialCards } from "./social-cards";
 import { ImageGallery } from "./image-gallery";
@@ -40,6 +40,7 @@ export function OutputPanel({
 }: OutputPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("blog");
   const [blogView, setBlogView] = useState<BlogView>("preview");
+  const [copiedFormat, setCopiedFormat] = useState<"html" | "markdown" | null>(null);
 
   const blogContent = sections.blog || "";
   const hasBlog = blogContent.length > 0;
@@ -53,8 +54,14 @@ export function OutputPanel({
   const reading = hasBlog ? readTime(blogContent) : 0;
 
   const handleCopy = async (format: "html" | "markdown") => {
-    const text = format === "html" ? blogHtml : blogContent;
-    await navigator.clipboard.writeText(text);
+    try {
+      const text = format === "html" ? blogHtml : blogContent;
+      await navigator.clipboard.writeText(text);
+      setCopiedFormat(format);
+      setTimeout(() => setCopiedFormat(null), 2000);
+    } catch {
+      // Clipboard API may not be available in all contexts
+    }
   };
 
   // Auto-switch to images tab when images start generating
@@ -186,15 +193,23 @@ export function OutputPanel({
                 <div className="flex gap-2 px-4 py-3 border-t border-border">
                   <button
                     onClick={() => handleCopy("html")}
-                    className="flex-1 py-2 rounded-lg text-xs font-medium bg-surface-2 border border-border text-text-dim hover:text-text-primary hover:border-border-hover transition-colors"
+                    className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors flex items-center justify-center gap-1.5 ${
+                      copiedFormat === "html"
+                        ? "bg-accent/10 border-accent/30 text-accent"
+                        : "bg-surface-2 border-border text-text-dim hover:text-text-primary hover:border-border-hover"
+                    }`}
                   >
-                    Copy HTML
+                    {copiedFormat === "html" ? <><Check size={12} /> Copied!</> : "Copy HTML"}
                   </button>
                   <button
                     onClick={() => handleCopy("markdown")}
-                    className="flex-1 py-2 rounded-lg text-xs font-medium bg-surface-2 border border-border text-text-dim hover:text-text-primary hover:border-border-hover transition-colors"
+                    className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors flex items-center justify-center gap-1.5 ${
+                      copiedFormat === "markdown"
+                        ? "bg-accent/10 border-accent/30 text-accent"
+                        : "bg-surface-2 border-border text-text-dim hover:text-text-primary hover:border-border-hover"
+                    }`}
                   >
-                    Copy Markdown
+                    {copiedFormat === "markdown" ? <><Check size={12} /> Copied!</> : "Copy Markdown"}
                   </button>
                 </div>
               </>

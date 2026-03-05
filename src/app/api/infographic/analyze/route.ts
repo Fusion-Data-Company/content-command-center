@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildInfographicAnalysisPrompt } from "@/lib/openrouter/infographic-prompt";
+import { buildInfographicAnalysisPrompt, INFOGRAPHIC_GLOBAL_STYLE } from "@/lib/openrouter/infographic-prompt";
 import { getBrandProfileById } from "@/lib/db/queries/brand-profiles";
 import { getSettings } from "@/lib/db/queries/settings";
 import { generateImage } from "@/lib/images/fal-client";
@@ -61,8 +61,8 @@ export async function POST(req: Request) {
           model: settings.chatModel,
           messages: [{ role: "user", content: analysisPrompt }],
           stream: false,
-          max_tokens: 2000,
-          temperature: 0.4,
+          max_tokens: settings.chatMaxTokens,
+          temperature: settings.chatTemperature,
         }),
       }
     );
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
       ? ` Use this color palette: ${brandColors.join(", ")}.`
       : "";
 
-    const fullPrompt = `${analysis.prompt}${colorEnhancement}`;
+    const fullPrompt = `${INFOGRAPHIC_GLOBAL_STYLE}\n\n${analysis.prompt}${colorEnhancement}`;
 
     const images = await generateImage({
       prompt: fullPrompt,

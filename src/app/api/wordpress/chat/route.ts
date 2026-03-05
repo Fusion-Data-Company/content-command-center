@@ -110,8 +110,8 @@ export async function POST(req: Request) {
           model: settings.chatModel,
           messages,
           stream: true,
-          max_tokens: 2000,
-          temperature: 0.5,
+          max_tokens: settings.chatMaxTokens,
+          temperature: settings.chatTemperature,
         }),
       }
     );
