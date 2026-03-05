@@ -53,31 +53,31 @@ WHEN GENERATING FULL CONTENT, use these EXACT section markers:
 ---END BLOG POST---
 
 ---BEGIN FACEBOOK---
-[Facebook post, 200-300 words. Conversational and engaging. Hook in first line. CTA and link placeholder [BLOG LINK]. 1-2 emojis. No hashtags.]
+[Facebook post, 200-300 words. High-visibility format. Open with a bold hook line followed by a relevant emoji. Use line breaks between short paragraphs for scroll-stopping readability. Sprinkle 3-5 well-chosen emojis throughout — use them as visual anchors at the start of key points or transitions (e.g. 🔑 for key insight, 📈 for growth/results, 💡 for tips, ⚡ for urgency). End with a clear CTA and [BLOG LINK] placeholder. No hashtags.]
 ---END FACEBOOK---
 
 ---BEGIN LINKEDIN---
-[LinkedIn post, 200-250 words. Professional thought-leadership. Bold statement or question to start. Line breaks for readability. 3-5 hashtags at end.]
+[LinkedIn post, 200-250 words. High-visibility thought-leadership format. Open with a bold contrarian statement or surprising stat — followed by a relevant emoji. Single-sentence lines with line breaks between each for maximum readability (the "broetry" format that performs on LinkedIn). Use 3-4 strategic emojis as visual markers at section transitions (e.g. 🎯 for the main point, 📊 for data, ✅ for takeaways, 🧠 for insights). End with a question to drive comments. 3-5 hashtags on final line.]
 ---END LINKEDIN---
 
 ---BEGIN INSTAGRAM---
-[Instagram caption, 125-150 words max. Visual storytelling. Hook. CTA. 20-30 hashtags on separate line. Strategic emojis.]
+[Instagram caption, 125-150 words max. Hook in first sentence with a strong emoji lead (🔥, 💥, or relevant). Visual storytelling with personality. Use 4-6 emojis woven naturally into the text — not clustered. Each emoji should add meaning, not decoration. Strong CTA. 20-30 hashtags on a separate line after five dots on their own line (.\n.\n.\n.\n.).]
 ---END INSTAGRAM---
 
 ---BEGIN TWITTER---
-[Tweet, 270 characters max. Punchy, thought-provoking. 1-2 hashtags. [BLOG LINK] placeholder.]
+[Tweet, 270 characters max. Punchy, thought-provoking. Lead with the sharpest take. 1 well-chosen emoji that amplifies the tone (⚡ for energy, 🧵 for threads, 🎯 for precision). 1-2 hashtags. [BLOG LINK] placeholder.]
 ---END TWITTER---
 
 ---BEGIN THREADS---
-[Threads post, 450 characters max. Conversational, authentic. Spark discussion. No hashtags.]
+[Threads post, 450 characters max. Conversational and real. Open with a hot take or relatable observation + emoji. Write like you're texting a smart friend. 2-3 emojis max — only where they genuinely add punch. Spark discussion with a question or challenge at the end. No hashtags.]
 ---END THREADS---
 
 ---BEGIN PINTEREST---
-[Pinterest description, 400 characters max. Keyword-rich. Value proposition focused.]
+[Pinterest description, 400 characters max. Keyword-rich. Lead with value proposition. Use 2-3 emojis to highlight key benefits (✨ for appeal, 📌 for must-save, 💡 for tips). Actionable and aspirational tone.]
 ---END PINTEREST---
 
 ---BEGIN REDDIT---
-[Reddit post, 300-500 words. Value-first, non-promotional. Genuine expertise. Suggested subreddit. Educational tone.]
+[Reddit post, 300-500 words. Value-first, non-promotional. Genuine expertise. No emojis — Reddit culture frowns on them. Suggested subreddit in format "r/subredditname". Educational tone. Open with context, deliver real substance, end with discussion prompt.]
 ---END REDDIT---
 
 IMAGE GENERATION (ALWAYS INCLUDE):
