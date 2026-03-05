@@ -7,6 +7,27 @@ export const metadata: Metadata = {
   description:
     "AI-powered content generation, SEO optimization, and multi-platform publishing by Marketing Strategy.",
   icons: { icon: "/favicon.png" },
+  openGraph: {
+    title: "Content Command Center — Marketing Strategy",
+    description:
+      "AI-powered content generation, SEO optimization, and multi-platform publishing by Marketing Strategy.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Marketing Strategy — Content Command Center",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Content Command Center — Marketing Strategy",
+    description:
+      "AI-powered content generation, SEO optimization, and multi-platform publishing by Marketing Strategy.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
