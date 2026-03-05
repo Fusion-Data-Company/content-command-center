@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Copy, X, Loader2, BarChart3 } from "lucide-react";
+import { Download, Copy, X, Loader2, BarChart3, RefreshCw } from "lucide-react";
 import type { GeneratedImage } from "@/components/chat/chat-container";
 
 interface InfographicBannerProps {
   image: GeneratedImage | null;
   isGenerating: boolean;
+  onRegenerate?: () => void;
 }
 
 export function InfographicBanner({
   image,
   isGenerating,
+  onRegenerate,
 }: InfographicBannerProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -33,10 +35,46 @@ export function InfographicBanner({
     }
   };
 
-  const handleCopyUrl = async () => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyImage = async () => {
     if (!image) return;
-    await navigator.clipboard.writeText(image.url);
+    try {
+      const res = await fetch(image.url);
+      const blob = await res.blob();
+      // Convert to PNG for clipboard compatibility
+      const pngBlob = blob.type === "image/png" ? blob : await convertToPng(blob);
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": pngBlob }),
+      ]);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback to copying URL if image clipboard fails
+      await navigator.clipboard.writeText(image.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
+
+  async function convertToPng(blob: Blob): Promise<Blob> {
+    const img = document.createElement("img");
+    const url = URL.createObjectURL(blob);
+    return new Promise((resolve) => {
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((pngBlob) => {
+          URL.revokeObjectURL(url);
+          resolve(pngBlob!);
+        }, "image/png");
+      };
+      img.src = url;
+    });
+  }
 
   if (isGenerating) {
     return (
@@ -86,13 +124,25 @@ export function InfographicBanner({
                 </span>
               </div>
               <div className="flex gap-1.5">
+                {onRegenerate && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRegenerate();
+                    }}
+                    className="p-1.5 rounded-md bg-white/10 text-white hover:bg-white/20 transition-colors"
+                    title="Regenerate infographic"
+                  >
+                    <RefreshCw size={12} />
+                  </button>
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleCopyUrl();
+                    handleCopyImage();
                   }}
                   className="p-1.5 rounded-md bg-white/10 text-white hover:bg-white/20 transition-colors"
-                  title="Copy URL"
+                  title="Copy Image"
                 >
                   <Copy size={12} />
                 </button>
@@ -134,12 +184,12 @@ export function InfographicBanner({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleCopyUrl();
+                handleCopyImage();
               }}
               className="px-4 py-2 rounded-lg bg-white/10 text-white text-xs hover:bg-white/20 transition-colors flex items-center gap-2"
             >
               <Copy size={14} />
-              Copy URL
+              {copied ? "Copied!" : "Copy Image"}
             </button>
             <button
               onClick={(e) => {

@@ -18,6 +18,7 @@ interface OutputPanelProps {
   onGenerateImage: (prompt: string) => void;
   infographicImage: GeneratedImage | null;
   isGeneratingInfographic: boolean;
+  onRegenerateInfographic?: () => void;
   onClose: () => void;
 }
 
@@ -32,6 +33,7 @@ export function OutputPanel({
   onGenerateImage,
   infographicImage,
   isGeneratingInfographic,
+  onRegenerateInfographic,
   onClose,
 }: OutputPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("blog");
@@ -162,6 +164,7 @@ export function OutputPanel({
                     <InfographicBanner
                       image={infographicImage}
                       isGenerating={isGeneratingInfographic}
+                      onRegenerate={onRegenerateInfographic}
                     />
                     <BlogPreview html={blogHtml} />
                   </div>

@@ -11,6 +11,7 @@ import {
   Settings,
   Paintbrush,
   Globe,
+  LayoutGrid,
 } from "lucide-react";
 import { ProjectItem } from "./project-item";
 import { NewProjectDialog } from "./new-project-dialog";
@@ -78,6 +79,17 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             }`}
           >
             <Paintbrush size={18} />
+          </button>
+          <button
+            onClick={() => router.push("/gallery")}
+            className={`p-2 rounded-lg hover:bg-surface-2 transition-colors ${
+              pathname === "/gallery"
+                ? "bg-accent/10 text-accent"
+                : "text-text-dim hover:text-text-primary"
+            }`}
+            title="Gallery"
+          >
+            <LayoutGrid size={18} />
           </button>
           <button
             onClick={() => router.push("/wordpress")}
@@ -170,6 +182,17 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         >
           <Paintbrush size={16} />
           Image Studio
+        </button>
+        <button
+          onClick={() => router.push("/gallery")}
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm ${
+            pathname === "/gallery"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-surface-2 text-text-dim hover:text-text-primary"
+          }`}
+        >
+          <LayoutGrid size={16} />
+          Gallery
         </button>
         <button
           onClick={() => router.push("/wordpress")}

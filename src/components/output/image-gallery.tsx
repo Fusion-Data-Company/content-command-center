@@ -41,9 +41,43 @@ export function ImageGallery({
     }
   };
 
-  const handleCopyUrl = async (url: string) => {
-    await navigator.clipboard.writeText(url);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyImage = async (image: GeneratedImage) => {
+    try {
+      const res = await fetch(image.url);
+      const blob = await res.blob();
+      const pngBlob = blob.type === "image/png" ? blob : await convertToPng(blob);
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": pngBlob }),
+      ]);
+      setCopiedId(image.url);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      await navigator.clipboard.writeText(image.url);
+      setCopiedId(image.url);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
   };
+
+  async function convertToPng(blob: Blob): Promise<Blob> {
+    const img = document.createElement("img");
+    const url = URL.createObjectURL(blob);
+    return new Promise((resolve) => {
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((pngBlob) => {
+          URL.revokeObjectURL(url);
+          resolve(pngBlob!);
+        }, "image/png");
+      };
+      img.src = url;
+    });
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -144,11 +178,15 @@ export function ImageGallery({
                     </span>
                     <div className="flex gap-1">
                       <button
-                        onClick={() => handleCopyUrl(image.url)}
+                        onClick={() => handleCopyImage(image)}
                         className="p-1 rounded text-text-muted hover:text-text-primary transition-colors"
-                        title="Copy URL"
+                        title="Copy image"
                       >
-                        <Copy size={12} />
+                        {copiedId === image.url ? (
+                          <span className="text-[9px] text-accent font-medium">Copied</span>
+                        ) : (
+                          <Copy size={12} />
+                        )}
                       </button>
                       <button
                         onClick={() => handleDownload(image)}
@@ -191,12 +229,12 @@ export function ImageGallery({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleCopyUrl(selectedImage.url);
+                handleCopyImage(selectedImage);
               }}
               className="px-4 py-2 rounded-lg bg-white/10 text-white text-xs hover:bg-white/20 transition-colors flex items-center gap-2"
             >
               <Copy size={14} />
-              Copy URL
+              {copiedId === selectedImage.url ? "Copied!" : "Copy Image"}
             </button>
             <button
               onClick={(e) => {

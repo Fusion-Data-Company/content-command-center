@@ -16,7 +16,7 @@ import {
 import { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { PanelRight, PanelRightClose } from "lucide-react";
-import type { ChatMessage } from "@/lib/db/schema";
+import type { ChatMessage, GeneratedContent, GeneratedImage as DBGeneratedImage } from "@/lib/db/schema";
 
 export interface GeneratedImage {
   url: string;
@@ -30,26 +30,153 @@ interface ChatContainerProps {
   projectId: string;
   initialMessages: ChatMessage[];
   projectTitle: string;
+  initialContent?: GeneratedContent | null;
+  initialImages?: DBGeneratedImage[];
 }
 
 export function ChatContainer({
   projectId,
   initialMessages,
   projectTitle,
+  initialContent,
+  initialImages,
 }: ChatContainerProps) {
   const chat = useChat({ projectId, initialMessages });
-  const [outputVisible, setOutputVisible] = useState(false);
+  const [outputVisible, setOutputVisible] = useState(
+    !!(initialContent || (initialImages && initialImages.length > 0))
+  );
   const [outputWidth, setOutputWidth] = useState(440);
   const [parsedSections, setParsedSections] = useState<Record<string, string>>(
-    {}
+    () => {
+      // Initialize from saved content + messages
+      const sections: Record<string, string> = {};
+
+      // First try to restore from the last assistant message (has all section markers)
+      const lastAssistant = initialMessages
+        .filter((m) => m.role === "assistant")
+        .pop();
+      if (lastAssistant && hasSectionMarkers(lastAssistant.content)) {
+        Object.assign(sections, parseAllSections(lastAssistant.content));
+      }
+
+      // If we have saved content but no parsed blog section, use the saved one
+      if (!sections.blog && initialContent?.contentMarkdown) {
+        sections.blog = initialContent.contentMarkdown;
+      } else if (!sections.blog && initialContent?.contentHtml) {
+        sections.blog = initialContent.contentHtml;
+      }
+
+      return sections;
+    }
   );
-  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>(
+    () => {
+      // Initialize from saved images
+      if (initialImages && initialImages.length > 0) {
+        return initialImages.map((img) => ({
+          url: img.imageUrl,
+          width: img.dimensions ? parseInt(img.dimensions.split("x")[0]) || 1024 : 1024,
+          height: img.dimensions ? parseInt(img.dimensions.split("x")[1]) || 1024 : 1024,
+          type: img.imageType || "custom",
+          prompt: img.generationPrompt || "",
+        }));
+      }
+      return [];
+    }
+  );
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
-  const [infographicImage, setInfographicImage] = useState<GeneratedImage | null>(null);
+  const [infographicImage, setInfographicImage] = useState<GeneratedImage | null>(
+    () => {
+      if (initialImages) {
+        const inf = initialImages.find((img) => img.imageType === "infographic");
+        if (inf) {
+          return {
+            url: inf.imageUrl,
+            width: inf.dimensions ? parseInt(inf.dimensions.split("x")[0]) || 1024 : 1024,
+            height: inf.dimensions ? parseInt(inf.dimensions.split("x")[1]) || 1024 : 1024,
+            type: "infographic",
+            prompt: inf.generationPrompt || "",
+          };
+        }
+      }
+      return null;
+    }
+  );
   const [isGeneratingInfographic, setIsGeneratingInfographic] = useState(false);
   const lastContentRef = useRef("");
-  const imagePromptsProcessedRef = useRef<Set<string>>(new Set());
-  const infographicProcessedRef = useRef<Set<string>>(new Set());
+  const imagePromptsProcessedRef = useRef<Set<string>>(
+    new Set(initialImages?.map((img) => img.generationPrompt || "").filter(Boolean))
+  );
+  const infographicProcessedRef = useRef<Set<string>>(
+    (() => {
+      const set = new Set<string>();
+      if (initialImages?.some((img) => img.imageType === "infographic")) {
+        const lastAssistant = initialMessages
+          .filter((m) => m.role === "assistant")
+          .pop();
+        if (lastAssistant) {
+          const blogContent = extractSection(lastAssistant.content, "blog");
+          if (blogContent) set.add(blogContent.slice(0, 100));
+        }
+      }
+      return set;
+    })()
+  );
+  const contentSavedRef = useRef<string>(
+    initialContent?.contentHtml?.slice(0, 100) || ""
+  );
+
+  // ── Save content to DB ──────────────────────────────────
+  const saveContentToDB = useCallback(
+    async (sections: Record<string, string>) => {
+      const blogContent = sections.blog;
+      if (!blogContent || blogContent.length < 50) return;
+
+      const contentKey = blogContent.slice(0, 100);
+      if (contentSavedRef.current === contentKey) return;
+      contentSavedRef.current = contentKey;
+
+      try {
+        await fetch(`/api/projects/${projectId}/content`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contentHtml: blogContent,
+            contentMarkdown: blogContent,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to save content:", err);
+      }
+    },
+    [projectId]
+  );
+
+  // ── Save images to DB ───────────────────────────────────
+  const saveImagesToDB = useCallback(
+    async (images: GeneratedImage[]) => {
+      if (images.length === 0) return;
+
+      try {
+        await fetch(`/api/projects/${projectId}/images`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            images: images.map((img) => ({
+              url: img.url,
+              type: img.type,
+              prompt: img.prompt,
+              width: img.width,
+              height: img.height,
+            })),
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to save images:", err);
+      }
+    },
+    [projectId]
+  );
 
   // Generate images from prompts
   const generateImagesFromPrompts = useCallback(
@@ -65,6 +192,8 @@ export function ChatContainer({
 
       setIsGeneratingImages(true);
       setOutputVisible(true);
+
+      const allNewImages: GeneratedImage[] = [];
 
       for (const prompt of newPrompts) {
         imagePromptsProcessedRef.current.add(prompt.description);
@@ -92,6 +221,7 @@ export function ChatContainer({
                   prompt: prompt.description,
                 })
               );
+              allNewImages.push(...newImages);
               setGeneratedImages((prev) => [...prev, ...newImages]);
             }
           }
@@ -100,9 +230,14 @@ export function ChatContainer({
         }
       }
 
+      // Persist all new images to DB
+      if (allNewImages.length > 0) {
+        saveImagesToDB(allNewImages);
+      }
+
       setIsGeneratingImages(false);
     },
-    []
+    [saveImagesToDB]
   );
 
   // Parse sections from the latest assistant message or streaming content
@@ -120,9 +255,14 @@ export function ChatContainer({
         if (!outputVisible && Object.keys(sections).length > 0) {
           setOutputVisible(true);
         }
+
+        // Save to DB when streaming finishes (not during streaming)
+        if (!chat.isStreaming && sections.blog) {
+          saveContentToDB(sections);
+        }
       }
     }
-  }, [chat.messages, chat.streamingContent, chat.isStreaming, outputVisible]);
+  }, [chat.messages, chat.streamingContent, chat.isStreaming, outputVisible, saveContentToDB]);
 
   // Auto-trigger image generation when streaming completes and content has image prompts
   useEffect(() => {
@@ -179,6 +319,9 @@ export function ChatContainer({
             };
             setInfographicImage(infographic);
             setGeneratedImages((prev) => [...prev, infographic]);
+
+            // Persist infographic to DB
+            saveImagesToDB([infographic]);
           }
         }
       } catch (err) {
@@ -189,7 +332,7 @@ export function ChatContainer({
     };
 
     generateInfographic();
-  }, [chat.isStreaming, chat.messages]);
+  }, [chat.isStreaming, chat.messages, saveImagesToDB]);
 
   // Manual image generation trigger
   const handleGenerateImage = useCallback(async (prompt: string) => {
@@ -220,6 +363,9 @@ export function ChatContainer({
             })
           );
           setGeneratedImages((prev) => [...prev, ...newImages]);
+
+          // Persist to DB
+          saveImagesToDB(newImages);
         }
       }
     } catch (err) {
@@ -227,7 +373,50 @@ export function ChatContainer({
     } finally {
       setIsGeneratingImages(false);
     }
-  }, []);
+  }, [saveImagesToDB]);
+
+  // Regenerate infographic on user request
+  const handleRegenerateInfographic = useCallback(async () => {
+    const lastAssistant = chat.messages
+      .filter((m) => m.role === "assistant")
+      .pop();
+    if (!lastAssistant) return;
+
+    const blogContent = extractSection(lastAssistant.content, "blog");
+    if (!blogContent || blogContent.length < 200) return;
+
+    setIsGeneratingInfographic(true);
+    setOutputVisible(true);
+
+    try {
+      const res = await fetch("/api/infographic/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blogContent }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.images?.length > 0) {
+          const img = data.images[0];
+          const infographic: GeneratedImage = {
+            url: img.url,
+            width: img.width,
+            height: img.height,
+            type: "infographic",
+            prompt: data.analysis?.prompt || "Regenerated infographic",
+          };
+          setInfographicImage(infographic);
+          setGeneratedImages((prev) => [...prev, infographic]);
+          saveImagesToDB([infographic]);
+        }
+      }
+    } catch (err) {
+      console.error("Infographic regeneration failed:", err);
+    } finally {
+      setIsGeneratingInfographic(false);
+    }
+  }, [chat.messages, saveImagesToDB]);
 
   const isEmpty = chat.messages.length === 0;
 
@@ -342,6 +531,7 @@ export function ChatContainer({
               onGenerateImage={handleGenerateImage}
               infographicImage={infographicImage}
               isGeneratingInfographic={isGeneratingInfographic}
+              onRegenerateInfographic={handleRegenerateInfographic}
               onClose={() => setOutputVisible(false)}
             />
           </div>
