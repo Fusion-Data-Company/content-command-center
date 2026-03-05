@@ -240,6 +240,32 @@ export const externalContent = pgTable("external_content", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ──── App Settings ───────────────────────────────────────
+
+export const appSettings = pgTable("app_settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().default("default").unique(),
+
+  // AI Configuration
+  chatModel: text("chat_model").notNull().default("anthropic/claude-sonnet-4"),
+  chatTemperature: real("chat_temperature").notNull().default(0.7),
+  chatMaxTokens: integer("chat_max_tokens").notNull().default(16000),
+
+  // Image Generation
+  defaultImageModel: text("default_image_model").notNull().default("fal-ai/nano-banana-pro"),
+  defaultAspectRatio: text("default_aspect_ratio").notNull().default("16:9"),
+  defaultResolution: text("default_resolution").notNull().default("1K"),
+  autoGenerateImages: boolean("auto_generate_images").notNull().default(true),
+  autoGenerateInfographic: boolean("auto_generate_infographic").notNull().default(true),
+
+  // Content Defaults
+  defaultContentTone: text("default_content_tone").notNull().default("professional"),
+  targetWordCount: integer("target_word_count").notNull().default(2000),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // ──── Type Exports ─────────────────────────────────────────
 
 export type BrandProfile = typeof brandProfiles.$inferSelect;
@@ -259,3 +285,5 @@ export type PublishingJob = typeof publishingJobs.$inferSelect;
 export type NewPublishingJob = typeof publishingJobs.$inferInsert;
 export type ExternalContent = typeof externalContent.$inferSelect;
 export type NewExternalContent = typeof externalContent.$inferInsert;
+export type AppSettings = typeof appSettings.$inferSelect;
+export type NewAppSettings = typeof appSettings.$inferInsert;

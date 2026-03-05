@@ -102,8 +102,12 @@ export function ChatContainer({
       return null;
     }
   );
+  const [autoGenerateImages, setAutoGenerateImages] = useState(true);
+  const [autoGenerateInfographic, setAutoGenerateInfographic] = useState(true);
   const [isGeneratingInfographic, setIsGeneratingInfographic] = useState(false);
-  const lastContentRef = useRef("");
+  const lastContentRef = useRef(
+    initialMessages.filter((m) => m.role === "assistant").pop()?.content || ""
+  );
   const imagePromptsProcessedRef = useRef<Set<string>>(
     new Set(initialImages?.map((img) => img.generationPrompt || "").filter(Boolean))
   );
@@ -125,6 +129,19 @@ export function ChatContainer({
   const contentSavedRef = useRef<string>(
     initialContent?.contentHtml?.slice(0, 100) || ""
   );
+
+  // ── Load settings to gate auto-generation ──────────────
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.settings) {
+          setAutoGenerateImages(data.settings.autoGenerateImages);
+          setAutoGenerateInfographic(data.settings.autoGenerateInfographic);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // ── Save content to DB ──────────────────────────────────
   const saveContentToDB = useCallback(
@@ -266,6 +283,7 @@ export function ChatContainer({
 
   // Auto-trigger image generation when streaming completes and content has image prompts
   useEffect(() => {
+    if (!autoGenerateImages) return; // Respect settings toggle
     if (chat.isStreaming) return; // Wait for streaming to finish
 
     const lastAssistant = chat.messages
@@ -276,10 +294,11 @@ export function ChatContainer({
     if (hasImagePrompts(lastAssistant.content)) {
       generateImagesFromPrompts(lastAssistant.content);
     }
-  }, [chat.isStreaming, chat.messages, generateImagesFromPrompts]);
+  }, [chat.isStreaming, chat.messages, generateImagesFromPrompts, autoGenerateImages]);
 
   // Phase 2: Auto-generate infographic by analyzing completed blog content
   useEffect(() => {
+    if (!autoGenerateInfographic) return; // Respect settings toggle
     if (chat.isStreaming) return;
 
     const lastAssistant = chat.messages
@@ -332,7 +351,7 @@ export function ChatContainer({
     };
 
     generateInfographic();
-  }, [chat.isStreaming, chat.messages, saveImagesToDB]);
+  }, [chat.isStreaming, chat.messages, saveImagesToDB, autoGenerateInfographic]);
 
   // Manual image generation trigger
   const handleGenerateImage = useCallback(async (prompt: string) => {

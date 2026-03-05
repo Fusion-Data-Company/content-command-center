@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildInfographicAnalysisPrompt } from "@/lib/openrouter/infographic-prompt";
 import { getBrandProfileById } from "@/lib/db/queries/brand-profiles";
+import { getSettings } from "@/lib/db/queries/settings";
 import { generateImage } from "@/lib/images/fal-client";
 
 export async function POST(req: Request) {
@@ -12,6 +13,12 @@ export async function POST(req: Request) {
         { error: "blogContent is required" },
         { status: 400 }
       );
+    }
+
+    // Load user settings — bail early if auto-infographic is disabled
+    const settings = await getSettings();
+    if (!settings.autoGenerateInfographic) {
+      return NextResponse.json({ skipped: true, reason: "Auto-generate infographic disabled in settings" });
     }
 
     // Fetch brand profile for colors if provided
@@ -51,7 +58,7 @@ export async function POST(req: Request) {
           "X-Title": "Content Command Center",
         },
         body: JSON.stringify({
-          model: "anthropic/claude-sonnet-4",
+          model: settings.chatModel,
           messages: [{ role: "user", content: analysisPrompt }],
           stream: false,
           max_tokens: 2000,

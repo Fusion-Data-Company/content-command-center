@@ -1,4 +1,5 @@
 import { createMessage } from "@/lib/db/queries/messages";
+import { getSettings } from "@/lib/db/queries/settings";
 import { buildSystemPrompt } from "@/lib/openrouter/prompts";
 
 export async function POST(req: Request) {
@@ -17,6 +18,9 @@ export async function POST(req: Request) {
       role: "user",
       content: message,
     });
+
+    // Load user settings
+    const settings = await getSettings();
 
     // Build messages for OpenRouter
     const systemPrompt = buildSystemPrompt();
@@ -49,11 +53,11 @@ export async function POST(req: Request) {
           "X-Title": "Content Command Center",
         },
         body: JSON.stringify({
-          model: "anthropic/claude-sonnet-4",
+          model: settings.chatModel,
           messages,
           stream: true,
-          max_tokens: 16000,
-          temperature: 0.7,
+          max_tokens: settings.chatMaxTokens,
+          temperature: settings.chatTemperature,
         }),
       }
     );

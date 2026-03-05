@@ -57,7 +57,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             className="rounded"
           />
         </button>
-        <div className="flex-1 flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2">
           <button
             onClick={() => setDialogOpen(true)}
             className="p-2 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
@@ -70,6 +70,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           >
             <FolderOpen size={18} />
           </button>
+        </div>
+        <div className="flex flex-col items-center gap-2 mt-auto pb-1">
           <button
             onClick={() => router.push("/studio")}
             className={`p-2 rounded-lg hover:bg-surface-2 transition-colors ${
@@ -77,6 +79,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 ? "bg-accent/10 text-accent"
                 : "text-text-dim hover:text-text-primary"
             }`}
+            title="Image Studio"
           >
             <Paintbrush size={18} />
           </button>
@@ -93,10 +96,25 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           </button>
           <button
             onClick={() => router.push("/wordpress")}
-            className="p-2 rounded-lg hover:bg-surface-2 text-text-dim hover:text-text-primary transition-colors"
+            className={`p-2 rounded-lg hover:bg-surface-2 transition-colors ${
+              pathname === "/wordpress"
+                ? "bg-accent/10 text-accent"
+                : "text-text-dim hover:text-text-primary"
+            }`}
             title="Publishing Hub"
           >
             <Globe size={18} />
+          </button>
+          <button
+            onClick={() => router.push("/settings")}
+            className={`p-2 rounded-lg hover:bg-surface-2 transition-colors ${
+              pathname === "/settings"
+                ? "bg-accent/10 text-accent"
+                : "text-text-dim hover:text-text-primary"
+            }`}
+            title="Settings"
+          >
+            <Settings size={18} />
           </button>
         </div>
         <NewProjectDialog
@@ -196,14 +214,22 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         </button>
         <button
           onClick={() => router.push("/wordpress")}
-          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-surface-2 text-text-dim hover:text-text-primary transition-colors text-sm"
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm ${
+            pathname === "/wordpress"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-surface-2 text-text-dim hover:text-text-primary"
+          }`}
         >
           <Globe size={16} />
           Publishing Hub
         </button>
         <button
           onClick={() => router.push("/settings")}
-          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-surface-2 text-text-dim hover:text-text-primary transition-colors text-sm"
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm ${
+            pathname === "/settings"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-surface-2 text-text-dim hover:text-text-primary"
+          }`}
         >
           <Settings size={16} />
           Settings
