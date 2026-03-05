@@ -9,6 +9,10 @@ import {
   Wifi,
   WifiOff,
   Loader2,
+  Paintbrush,
+  LayoutGrid,
+  Settings,
+  FolderOpen,
 } from "lucide-react";
 import type { WordPressSite } from "@/lib/db/schema";
 
@@ -40,6 +44,59 @@ export function SiteSidebar({ collapsed, onToggleCollapse }: SiteSidebarProps) {
         >
           <Globe size={18} />
         </button>
+        <div className="flex flex-col items-center gap-2 mt-auto pb-1">
+          <button
+            onClick={() => router.push("/")}
+            className="p-2 rounded-lg hover:bg-surface-2 text-text-dim hover:text-text-primary transition-colors"
+            title="Projects"
+          >
+            <FolderOpen size={18} />
+          </button>
+          <button
+            onClick={() => router.push("/studio")}
+            className={`p-2 rounded-lg hover:bg-surface-2 transition-colors ${
+              pathname === "/studio"
+                ? "bg-accent/10 text-accent"
+                : "text-text-dim hover:text-text-primary"
+            }`}
+            title="Image Studio"
+          >
+            <Paintbrush size={18} />
+          </button>
+          <button
+            onClick={() => router.push("/gallery")}
+            className={`p-2 rounded-lg hover:bg-surface-2 transition-colors ${
+              pathname === "/gallery"
+                ? "bg-accent/10 text-accent"
+                : "text-text-dim hover:text-text-primary"
+            }`}
+            title="Gallery"
+          >
+            <LayoutGrid size={18} />
+          </button>
+          <button
+            onClick={() => router.push("/wordpress")}
+            className={`p-2 rounded-lg hover:bg-surface-2 transition-colors ${
+              pathname === "/wordpress" || pathname?.startsWith("/wordpress/")
+                ? "bg-accent/10 text-accent"
+                : "text-text-dim hover:text-text-primary"
+            }`}
+            title="Publishing Hub"
+          >
+            <Globe size={18} />
+          </button>
+          <button
+            onClick={() => router.push("/settings")}
+            className={`p-2 rounded-lg hover:bg-surface-2 transition-colors ${
+              pathname === "/settings"
+                ? "bg-accent/10 text-accent"
+                : "text-text-dim hover:text-text-primary"
+            }`}
+            title="Settings"
+          >
+            <Settings size={18} />
+          </button>
+        </div>
       </div>
     );
   }
@@ -114,18 +171,62 @@ export function SiteSidebar({ collapsed, onToggleCollapse }: SiteSidebarProps) {
         )}
       </div>
 
-      {/* Footer */}
-      <div className="border-t border-border px-3 py-2">
+      {/* Footer Nav */}
+      <div className="border-t border-border px-3 py-2 space-y-0.5">
+        <button
+          onClick={() => router.push("/")}
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm ${
+            pathname === "/"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-surface-2 text-text-dim hover:text-text-primary"
+          }`}
+        >
+          <FolderOpen size={16} />
+          Projects
+        </button>
+        <button
+          onClick={() => router.push("/studio")}
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm ${
+            pathname === "/studio"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-surface-2 text-text-dim hover:text-text-primary"
+          }`}
+        >
+          <Paintbrush size={16} />
+          Image Studio
+        </button>
+        <button
+          onClick={() => router.push("/gallery")}
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm ${
+            pathname === "/gallery"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-surface-2 text-text-dim hover:text-text-primary"
+          }`}
+        >
+          <LayoutGrid size={16} />
+          Gallery
+        </button>
         <button
           onClick={() => router.push("/wordpress")}
-          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
-            pathname === "/wordpress"
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm ${
+            pathname === "/wordpress" || pathname?.startsWith("/wordpress/")
               ? "bg-accent/10 text-accent"
               : "hover:bg-surface-2 text-text-dim hover:text-text-primary"
           }`}
         >
           <Globe size={16} />
-          Dashboard
+          Publishing Hub
+        </button>
+        <button
+          onClick={() => router.push("/settings")}
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm ${
+            pathname === "/settings"
+              ? "bg-accent/10 text-accent"
+              : "hover:bg-surface-2 text-text-dim hover:text-text-primary"
+          }`}
+        >
+          <Settings size={16} />
+          Settings
         </button>
       </div>
     </div>

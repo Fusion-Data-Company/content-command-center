@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Plus, Globe, Loader2 } from "lucide-react";
 import { SiteCard } from "@/components/wordpress/site-card";
 import { AddSiteDialog } from "@/components/wordpress/add-site-dialog";
+import { DemoSiteButton } from "@/components/wordpress/demo-site-button";
 import { JobStatusBadge } from "@/components/wordpress/job-status-badge";
 import type { WordPressSite, PublishingJob } from "@/lib/db/schema";
 
@@ -58,13 +59,16 @@ export default function WordPressDashboard() {
             Manage your WordPress sites and publish content from one place.
           </p>
         </div>
-        <button
-          onClick={() => setDialogOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-bg font-medium text-sm hover:bg-accent-hover transition-colors"
-        >
-          <Plus size={16} />
-          Add Site
-        </button>
+        <div className="flex items-center gap-3">
+          <DemoSiteButton onCreated={loadData} variant="compact" />
+          <button
+            onClick={() => setDialogOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-bg font-medium text-sm hover:bg-accent-hover transition-colors"
+          >
+            <Plus size={16} />
+            Add Site
+          </button>
+        </div>
       </div>
 
       {/* Sites Grid */}
@@ -78,13 +82,17 @@ export default function WordPressDashboard() {
             Add your first WordPress site to start publishing content directly
             from the Command Center.
           </p>
-          <button
-            onClick={() => setDialogOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-bg font-medium text-sm hover:bg-accent-hover transition-colors"
-          >
-            <Plus size={16} />
-            Add Your First Site
-          </button>
+          <div className="flex flex-col items-center gap-3">
+            <button
+              onClick={() => setDialogOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-bg font-medium text-sm hover:bg-accent-hover transition-colors"
+            >
+              <Plus size={16} />
+              Add Your First Site
+            </button>
+            <span className="text-xs text-text-muted">or</span>
+            <DemoSiteButton onCreated={loadData} />
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -5,19 +5,20 @@ import { useParams } from "next/navigation";
 import {
   ExternalLink,
   RefreshCw,
-  Wifi,
-  WifiOff,
   Loader2,
   Send,
   FileText,
   Upload as UploadIcon,
   Globe,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ContentCard } from "@/components/wordpress/content-card";
 import { ExternalUpload } from "@/components/wordpress/external-upload";
 import { AgentActivityLog } from "@/components/wordpress/agent-activity-log";
 import { ConnectionBadge } from "@/components/wordpress/connection-badge";
+import { ContentPreviewPanel } from "@/components/wordpress/content-preview-panel";
+import { PublishChat } from "@/components/wordpress/publish-chat";
 import { usePublishingAgent } from "@/hooks/use-publishing-agent";
 import type { WordPressSite, ExternalContent } from "@/lib/db/schema";
 
@@ -42,6 +43,21 @@ interface WPPostItem {
   date: string;
 }
 
+interface ContentPreview {
+  html: string;
+  markdown?: string;
+  title: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+interface PreviewImage {
+  id: string;
+  imageUrl: string;
+  imageType: string | null;
+  generationPrompt: string | null;
+}
+
 type ContentTab = "platform" | "external" | "wordpress";
 
 export default function SiteWorkspace() {
@@ -61,6 +77,16 @@ export default function SiteWorkspace() {
   // Selected content
   const [selectedContentId, setSelectedContentId] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<"platform" | "external" | null>(null);
+
+  // Content preview (right panel)
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [contentPreview, setContentPreview] = useState<ContentPreview | null>(null);
+  const [previewImages, setPreviewImages] = useState<PreviewImage[]>([]);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+
+  // Featured image
+  const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<PreviewImage[]>([]);
 
   // Publishing config
   const [postTitle, setPostTitle] = useState("");
@@ -84,12 +110,9 @@ export default function SiteWorkspace() {
     setLoadingContent(true);
     try {
       if (activeTab === "platform") {
-        // Fetch generated content list — we use a custom endpoint or query
         const res = await fetch("/api/projects");
         if (res.ok) {
           const projects = await res.json();
-          // For now, show projects as selectable content
-          // In a full implementation, we'd have a separate endpoint for generated content
           setPlatformContent(
             projects.map((p: any) => ({
               id: p.id,
@@ -125,6 +148,58 @@ export default function SiteWorkspace() {
     loadContent();
   }, [loadContent]);
 
+  // Fetch full content preview when platform content is selected
+  const fetchContentPreview = useCallback(async (projectId: string) => {
+    setLoadingPreview(true);
+    try {
+      const [contentRes, imagesRes] = await Promise.all([
+        fetch(`/api/projects/${projectId}/content`),
+        fetch(`/api/projects/${projectId}/images`),
+      ]);
+
+      if (contentRes.ok) {
+        const contentList = await contentRes.json();
+        const latest = contentList.length > 0 ? contentList[0] : null;
+        if (latest) {
+          setContentPreview({
+            html: latest.contentHtml || "",
+            markdown: latest.contentMarkdown || undefined,
+            title: latest.metaTitle || "",
+            metaTitle: latest.metaTitle,
+            metaDescription: latest.metaDescription,
+          });
+        } else {
+          setContentPreview(null);
+        }
+      }
+
+      if (imagesRes.ok) {
+        const images = await imagesRes.json();
+        setPreviewImages(
+          images.map((img: any) => ({
+            id: img.id,
+            imageUrl: img.imageUrl,
+            imageType: img.imageType,
+            generationPrompt: img.generationPrompt,
+          }))
+        );
+        // Auto-select first hero/infographic image as featured
+        const hero = images.find(
+          (img: any) =>
+            img.imageType === "hero" || img.imageType === "infographic"
+        );
+        if (hero) {
+          setFeaturedImageUrl(hero.imageUrl);
+        }
+      }
+    } catch {
+      setContentPreview(null);
+      setPreviewImages([]);
+    } finally {
+      setLoadingPreview(false);
+    }
+  }, []);
+
   const handleTestConnection = async () => {
     setTesting(true);
     try {
@@ -134,7 +209,6 @@ export default function SiteWorkspace() {
       const data = await res.json();
       if (data.success) {
         toast.success(`Connected! ${data.categoryCount} categories, ${data.tagCount} tags.`);
-        // Refresh site data
         const siteRes = await fetch(`/api/wordpress/sites/${siteId}`);
         if (siteRes.ok) setSite(await siteRes.json());
       } else {
@@ -152,6 +226,10 @@ export default function SiteWorkspace() {
     setSelectedSource("platform");
     setPostTitle(item.metaTitle || item.projectTitle || "");
     setPostSlug(item.urlSlug || "");
+    setFeaturedImageUrl(null);
+    setUploadedImages([]);
+    setPreviewOpen(true);
+    fetchContentPreview(item.id);
   };
 
   const handleSelectExternalContent = (item: ExternalContent) => {
@@ -159,6 +237,28 @@ export default function SiteWorkspace() {
     setSelectedSource("external");
     setPostTitle(item.metaTitle || item.title || "");
     setPostSlug("");
+    setFeaturedImageUrl(null);
+    setUploadedImages([]);
+    setPreviewOpen(true);
+    setContentPreview({
+      html: item.contentHtml || item.contentMarkdown || "",
+      markdown: item.contentMarkdown || undefined,
+      title: item.title,
+      metaTitle: item.metaTitle,
+      metaDescription: item.metaDescription,
+    });
+    setPreviewImages([]);
+    setLoadingPreview(false);
+  };
+
+  const handleUploadImage = (url: string) => {
+    const newImg: PreviewImage = {
+      id: `upload-${Date.now()}`,
+      imageUrl: url,
+      imageType: "uploaded",
+      generationPrompt: null,
+    };
+    setUploadedImages((prev) => [...prev, newImg]);
   };
 
   const handlePublish = () => {
@@ -176,6 +276,7 @@ export default function SiteWorkspace() {
       postTitle,
       postSlug: postSlug || undefined,
       postStatus,
+      featuredImageUrl: featuredImageUrl || undefined,
     });
   };
 
@@ -196,6 +297,13 @@ export default function SiteWorkspace() {
   }
 
   const categories = (site.categoriesCache as { id: number; name: string; slug: string }[]) || [];
+  const allImages = [...previewImages, ...uploadedImages];
+
+  const chatContentContext = {
+    title: postTitle,
+    htmlPreview: contentPreview?.html || "",
+    imageUrls: allImages.map((img) => img.imageUrl),
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -234,7 +342,7 @@ export default function SiteWorkspace() {
         </div>
       </div>
 
-      {/* Two-Column Layout */}
+      {/* Three-Column Layout */}
       <div className="flex-1 flex min-h-0">
         {/* Left Column: Content Selection */}
         <div className="w-[420px] flex-shrink-0 border-r border-border flex flex-col">
@@ -306,7 +414,6 @@ export default function SiteWorkspace() {
                 )}
               </>
             ) : (
-              // WordPress posts tab
               wpPosts.length === 0 ? (
                 <p className="text-xs text-text-muted text-center py-8">
                   {site.connectionStatus === "success"
@@ -347,7 +454,7 @@ export default function SiteWorkspace() {
           </div>
         </div>
 
-        {/* Right Column: Publishing Panel */}
+        {/* Middle Column: Publishing Config + Chat */}
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto p-6">
           {selectedContentId && selectedSource ? (
             <div className="space-y-5 max-w-xl">
@@ -410,6 +517,28 @@ export default function SiteWorkspace() {
                   </div>
                 </div>
 
+                {/* Featured Image Thumbnail */}
+                {featuredImageUrl && (
+                  <div className="mb-4">
+                    <label className="text-xs text-text-dim mb-1.5 block">
+                      Featured Image
+                    </label>
+                    <div className="relative inline-block">
+                      <img
+                        src={featuredImageUrl}
+                        alt="Featured"
+                        className="h-20 rounded-lg border border-accent/30 object-cover"
+                      />
+                      <button
+                        onClick={() => setFeaturedImageUrl(null)}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-surface border border-border flex items-center justify-center hover:bg-danger/20 hover:border-danger/50 transition-colors"
+                      >
+                        <X size={10} className="text-text-muted" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Categories info */}
                 {categories.length > 0 && (
                   <div className="mb-4">
@@ -466,6 +595,15 @@ export default function SiteWorkspace() {
                 result={agent.result}
                 error={agent.error}
               />
+
+              {/* Pre-publish Chat */}
+              {!agent.isPublishing && !agent.result && (
+                <PublishChat
+                  siteId={siteId}
+                  contentContext={chatContentContext}
+                  contentId={selectedContentId}
+                />
+              )}
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center">
@@ -485,6 +623,26 @@ export default function SiteWorkspace() {
             </div>
           )}
         </div>
+
+        {/* Right Column: Content Preview Panel */}
+        {previewOpen && selectedContentId && (
+          <div className="w-[560px] flex-shrink-0 border-l border-border h-full overflow-hidden">
+            {loadingPreview ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 size={20} className="animate-spin text-text-muted" />
+              </div>
+            ) : (
+              <ContentPreviewPanel
+                content={contentPreview}
+                images={allImages}
+                selectedFeaturedImage={featuredImageUrl}
+                onSelectFeaturedImage={setFeaturedImageUrl}
+                onUploadImage={handleUploadImage}
+                onClose={() => setPreviewOpen(false)}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
